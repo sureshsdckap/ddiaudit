@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/anet-webhook/priorauthcapture" method="POST">
+        <service class="AuthorizeNet\Webhooks\Api\TransactionInterface" method="transaction"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/anet-webhook/refund" method="POST">
+        <service class="AuthorizeNet\Webhooks\Api\TransactionInterface" method="transaction"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/anet-webhook/void" method="POST">
+        <service class="AuthorizeNet\Webhooks\Api\TransactionInterface" method="transaction"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/anet-webhook/fraudapproved" method="POST">
+        <service class="AuthorizeNet\Webhooks\Api\TransactionInterface" method="transaction"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/anet-webhook/frauddeclined" method="POST">
+        <service class="AuthorizeNet\Webhooks\Api\TransactionInterface" method="transaction"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>

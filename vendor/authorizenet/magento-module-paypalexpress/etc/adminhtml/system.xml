@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="anet_section">
+                <group id="anet_paypal_express" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>PayPal Express</label>
+                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_paypal_express/active</config_path>
+                    </field>
+                    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Title</label>
+                        <config_path>payment/anet_paypal_express/title</config_path>
+                    </field>
+                    <field id="payment_action" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment Action</label>
+                        <source_model>AuthorizeNet\Core\Model\Source\PaymentAction</source_model>
+                        <config_path>payment/anet_paypal_express/payment_action</config_path>
+                        <tooltip>See Payment Transaction Types page for a detailed explanation about transaction types.</tooltip>
+                        <comment><![CDATA[<a href="https://developer.authorize.net/api/reference/features/payment_transactions.html#Transaction_Types">Payment Transaction Types</a>]]></comment>
+                    </field>
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment From Applicable Countries</label>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                        <config_path>payment/anet_paypal_express/allowspecific</config_path>
+                    </field>
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment From Specific Countries</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <config_path>payment/anet_paypal_express/specificcountry</config_path>
+                        <depends>
+                            <field id="allowspecific">1</field>
+                        </depends>
+                    </field>
+                    <field id="sort_order" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <config_path>payment/anet_paypal_express/sort_order</config_path>
+                        <frontend_class>validate-number</frontend_class>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

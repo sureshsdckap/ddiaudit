@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="AuthorizeNet\Webhooks\Api\TransactionInterface"
+                type="AuthorizeNet\Webhooks\Model\Transaction" />
+
+    <type name="AuthorizeNet\Webhooks\Model\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\Webhooks\Model\Config::CODE</argument>
+        </arguments>
+    </type>
+
+    <type name="AuthorizeNet\Webhooks\Model\Transaction">
+        <arguments>
+            <argument name="logger" xsi:type="object">AuthorizeNetWebhooksLogger</argument>
+        </arguments>
+    </type>
+
+    <!-- Logger configuration -->
+    <virtualType name="AuthorizeNetWebhooksLogger" type="AuthorizeNet\Core\Model\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">AuthorizeNet Webhooks Logger</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">AuthorizeNetWebhooksLoggerHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetWebhooksLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/anet_webhooks.log</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="AuthorizeNet\Webhooks\Payload\Handler\CaptureHandler">
+        <arguments>
+            <argument name="command" xsi:type="object">AuthorizeNetCoreGetTransactionDetailsCommand</argument>
+        </arguments>
+    </type>
+
+    <type name="AuthorizeNet\Webhooks\Payload\Handler\RefundHandler">
+        <arguments>
+            <argument name="command" xsi:type="object">AuthorizeNetCoreGetTransactionDetailsCommand</argument>
+        </arguments>
+    </type>
+
+    <preference for="AuthorizeNet\Webhooks\Payload\Handler\HandlerPoolInterface" type="AuthorizeNet\Webhooks\Payload\Handler\HandlerPool"/>
+    <preference for="AuthorizeNet\Webhooks\Payload\ProcessorInterface" type="\AuthorizeNet\Webhooks\Payload\Processor"/>
+
+    <type name="AuthorizeNet\Webhooks\Payload\Handler\HandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="net.authorize.payment.fraud.approved" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\ApproveFraudHandler</item>
+                <item name="net.authorize.payment.fraud.declined" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\DeclineFraudHandler</item>
+                <item name="net.authorize.payment.priorAuthCapture.created" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\CaptureWithApproveHandler</item>
+                <item name="net.authorize.payment.refund.created" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\RefundHandler</item>
+                <item name="net.authorize.payment.void.created" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\VoidHandler</item>
+                <item name="capture_only" xsi:type="string">AuthorizeNet\Webhooks\Payload\Handler\CaptureHandler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Payment\Model\Method\Adapter">
+        <plugin name="WebhooksPaymentMethodAdapterPlugin" type="AuthorizeNet\Webhooks\Plugin\PaymentMethodAdapterPlugin"/>
+    </type>
+
+    <type name="AuthorizeNet\Webhooks\Plugin\PaymentMethodAdapterPlugin">
+        <arguments>
+            <argument name="methods" xsi:type="array">
+                <item name="cc" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::CODE</item>
+                <item name="echeck" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::CODE</item>
+                <item name="paypal" xsi:type="const">AuthorizeNet\PayPalExpress\Gateway\Config\Config::CODE</item>
+                <item name="vc" xsi:type="const">AuthorizeNet\VisaCheckout\Gateway\Config\Config::CODE</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="authorizenet_webhooks_payload_listing_data_source" xsi:type="string">AuthorizeNet\Webhooks\Model\ResourceModel\Payload\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="AuthorizeNet\Webhooks\Model\ResourceModel\Payload\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">anet_webhooks_payload</argument>
+            <argument name="resourceModel" xsi:type="string">AuthorizeNet\Webhooks\Model\ResourceModel\Payload</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="AuthorizeNet\Webhooks\Model\Payment\Webhook">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNetCoreBaseConfig</argument>
+        </arguments>
+    </type>
+
+</config>

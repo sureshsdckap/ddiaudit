@@ -1,0 +1,320 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="AuthorizeNet\Core\Gateway\Request\VaultTransactionRequestBuilder">
+        <plugin name="authorizeNetCreditCardVaultTransactionRequestBuilder" type="AuthorizeNet\CreditCard\Plugin\VaultTransactionRequestBuilderPlugin" />
+    </type>
+
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="AuthorizeNetCreditCardFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">AuthorizeNet\CreditCard\Block\Payment\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">AuthorizeNetCreditCardPaymentInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AuthorizeNetCreditCardValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetCreditCardCommandPool</argument>
+            <argument name="logger" xsi:type="object">AuthorizeNet\Core\Model\Logger</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Configuration reader -->
+    <type name="AuthorizeNet\CreditCard\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::CODE</argument>
+        </arguments>
+    </type>
+
+    <!-- Commands infrastructure -->
+    <virtualType name="AuthorizeNetCreditCardCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">AuthorizeNetCreditCardAuthorizeCommand</item>
+                <item name="sale" xsi:type="string">AuthorizeNetCreditCardSaleCommand</item>
+                <item name="settle" xsi:type="string">AuthorizeNetCreditCardSettleCommand</item>
+                <item name="capture" xsi:type="string">AuthorizeNetCreditCardCaptureStrategyCommand</item>
+                <item name="refund" xsi:type="string">AuthorizeNetCreditCardRefundCommand</item>
+                <item name="cancel" xsi:type="string">AuthorizeNetCreditCardVoidCommand</item>
+                <item name="void" xsi:type="string">AuthorizeNetCreditCardVoidCommand</item>
+                <item name="vault_authorize" xsi:type="string">AuthorizeNetCreditCardVaultAuthorizeCommand</item>
+                <item name="vault_sale" xsi:type="string">AuthorizeNetCreditCardVaultSaleCommand</item>
+                <item name="accept_payment" xsi:type="string">AuthorizeNetCoreApprovePaymentCommand</item>
+                <item name="deny_payment" xsi:type="string">AuthorizeNetCoreDeclinePaymentCommand</item>
+                <item name="fetch_transaction_information" xsi:type="string">AuthorizeNetCoreGetTransactionDetailsCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorize command -->
+    <virtualType name="AuthorizeNetCreditCardAuthorizeCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardAuthorizeRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetCreditCardTransactionResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetCreditCardAuthorizeCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetCreditCardTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardAuthorizeRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\OpaqueDataTransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_ONLY</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardTransactionResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="raw_data" xsi:type="string">\AuthorizeNet\Core\Gateway\Response\RawDataHandler</item>
+                <item name="held" xsi:type="string">AuthorizeNet\Core\Gateway\Response\HeldHandler</item>
+                <item name="transactionId" xsi:type="string">AuthorizeNet\Core\Gateway\Response\TransactionIdHandler</item>
+                <item name="ccInfo" xsi:type="string">AuthorizeNet\Core\Gateway\Response\CcInfoHandler</item>
+                <item name="clearData" xsi:type="string">AuthorizeNet\Core\Gateway\Response\ClearDataHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardAuthorizeCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetCreditCardTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardTransactionResponseValidator" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="held" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_HELD</item>
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Sale command -->
+    <virtualType name="AuthorizeNetCreditCardSaleCommand" type="AuthorizeNetCreditCardAuthorizeCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardSaleRequestBuilder</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardSaleRequestBuilder" type="AuthorizeNetCreditCardAuthorizeRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Settle command -->
+    <virtualType name="AuthorizeNetCreditCardSettleCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardSettleRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetCreditCardSettleResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetCreditCardSettleCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetCreditCardTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardSettleResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="transactionId" xsi:type="string">AuthorizeNetCoreTransactionIdSettleHandler</item>
+                <item name="ccInfo" xsi:type="string">AuthorizeNet\Core\Gateway\Response\CcInfoHandler</item>
+                <item name="clearData" xsi:type="string">AuthorizeNet\Core\Gateway\Response\ClearDataHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardSettleRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\SettleRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_PRIOR_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardSettleCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetCreditCardSettleTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardSettleTransactionResponseValidator" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Refund command -->
+    <virtualType name="AuthorizeNetCreditCardRefundCommand" type="AuthorizeNetCreditCardSettleCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardRefundRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNet\Core\Gateway\Response\RefundHandler</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardRefundRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\CcRefundRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_REFUND</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Void command -->
+    <virtualType name="AuthorizeNetCreditCardVoidCommand" type="AuthorizeNetCreditCardRefundCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardVoidRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetCoreTransactionIdVoidHandler</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardVoidRequestBuilder" type="AuthorizeNetCreditCardSettleRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_VOID</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Capture command -->
+    <virtualType name="AuthorizeNetCreditCardCaptureStrategyCommand" type="AuthorizeNet\Core\Gateway\Command\CaptureStrategyCommand">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetCreditCardCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault authorize command -->
+    <virtualType name="AuthorizeNetCreditCardVaultAuthorizeCommand" type="AuthorizeNetCreditCardAuthorizeCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardVaultAuthorizeRequestBuilder</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardVaultAuthorizeRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\VaultTransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_ONLY</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault sale command -->
+    <virtualType name="AuthorizeNetCreditCardVaultSaleCommand" type="AuthorizeNetCreditCardVaultAuthorizeCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardVaultSaleRequestBuilder</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardVaultSaleRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\VaultTransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Create customer profile command -->
+    <virtualType name="AuthorizeNetCreditCardCreateProfileCommand" type="AuthorizeNet\Core\Gateway\Command\CreateProfileCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCreditCardCreateProfileRequestBuilder</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetCreditCardCreateProfileRequestClient</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetCreditCardResponseProfileDetailsHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardCreateProfileRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\CreateProfileRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_DUMMY</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardResponseProfileDetailsHandler" type="AuthorizeNet\Core\Gateway\Response\ProfileDetailsHandler">
+        <arguments>
+            <argument name="paymentTokenFactory" xsi:type="object">Magento\Vault\Model\CreditCardTokenFactory</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Order Complete Observer -->
+    <virtualType name="AuthorizeNetCreditCardCreateProfileObserver" type="AuthorizeNet\Core\Observer\OrderPaymentPlaceCompleteObserver">
+        <arguments>
+            <argument name="paymentMethodCode" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::CODE</argument>
+            <argument name="command" xsi:type="object">AuthorizeNetCreditCardCreateProfileCommand</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault payment -->
+    <virtualType name="AuthorizeNetCreditCardVaultFacade" type="AuthorizeNet\Core\Model\Method\Vault">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNetCreditCardVaultPaymentConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AuthorizeNetCreditCardVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AuthorizeNetCreditCardFacade</argument>
+            <argument name="code" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::VAULT_CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCreditCardVaultPaymentConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\CreditCard\Gateway\Config\Config::VAULT_CODE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardVaultPaymentValueHandler" type="VaultPaymentDefaultValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNetCreditCardVaultPaymentConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AuthorizeNetCreditCardVaultPaymentValueHandler</item>
+                <item name="solution_id" xsi:type="string">AuthorizeNet\Core\Gateway\Config\SolutionIdHandler</item>
+                <item name="login_id" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="trans_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="client_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="signature_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault command manager -->
+    <virtualType name="AuthorizeNetCreditCardCommandManager" type="Magento\Payment\Gateway\Command\CommandManager">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetCreditCardCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Payment\Gateway\Command\CommandManagerPool">
+        <arguments>
+            <argument name="executors" xsi:type="array">
+                <item name="anet_creditcard" xsi:type="string">AuthorizeNetCreditCardCommandManager</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Injecting config model -->
+    <virtualType name="AuthorizeNetCreditCardTransactionClient" type="AuthorizeNet\Core\Gateway\Http\Client\TransactionClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\CreditCard\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardCreateProfileRequestClient" type="AuthorizeNet\Core\Gateway\Http\Client\CreateProfileClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\CreditCard\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment info block -->
+    <virtualType name="AuthorizeNetCreditCardPaymentInfo" type="AuthorizeNet\Core\Block\Payment\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\CreditCard\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Value handlers infrastructure -->
+    <virtualType name="AuthorizeNetCreditCardValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AuthorizeNetCreditCardConfigValueHandler</item>
+                <item name="login_id" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="trans_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="client_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="signature_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="can_void" xsi:type="string">AuthorizeNet\Core\Gateway\Config\CanVoidHandler</item>
+                <item name="can_cancel" xsi:type="string">AuthorizeNet\Core\Gateway\Config\CanVoidHandler</item>
+                <item name="solution_id" xsi:type="string">AuthorizeNet\Core\Gateway\Config\SolutionIdHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCreditCardConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNet\CreditCard\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="AuthorizeNet\Core\Model\Merchant\Configurator">
+        <plugin name="anet-cc-configurator-plugin" type="AuthorizeNet\CreditCard\Plugin\ConfiguratorPlugin"/>
+    </type>
+
+</config>

@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="Magento\Vault\Model\PaymentTokenRepository">
+        <plugin name="authorizeNetMagentoVaultPaymentTokenRepositoryPlugin" type="AuthorizeNet\Core\Plugin\PaymentTokenRepositoryPlugin" />
+    </type>
+
+    <type name="AuthorizeNet\Core\Block\Payment\Info">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item xsi:type="string" name="is_secure_mode">1</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Logger configuration -->
+    <type name="AuthorizeNet\Core\Model\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">AuthorizeNet Logger</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">AuthorizeNetCoreModelLoggerHandler</item>
+            </argument>
+        </arguments>
+    </type>
+    
+    <virtualType name="AuthorizeNetCoreModelLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/anet.log</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Injecting logger to command gateway -->
+    <virtualType name="AuthorizeNetCoreGatewayCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="logger" xsi:type="object">AuthorizeNet\Core\Model\Logger</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreTransactionResponseValidatorApprovedHeld" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+                <item name="held" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_HELD</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreTransactionResponseValidatorApproved" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreApprovePaymentCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCoreApprovePaymentRequestBuilder</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetCoreUpdateHeldValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNet\Core\Gateway\Http\Client\UpdateHeldTransactionClient</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreDeclinePaymentCommand" type="AuthorizeNetCoreApprovePaymentCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCoreDeclinePaymentRequestBuilder</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreApprovePaymentRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\UpdateHeldTransactionRequest">
+        <arguments>
+            <argument name="actionType" xsi:type="const">AuthorizeNet\Core\Gateway\Request\UpdateHeldTransactionRequest::ACTION_APPROVE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreDeclinePaymentRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\UpdateHeldTransactionRequest">
+        <arguments>
+            <argument name="actionType" xsi:type="const">AuthorizeNet\Core\Gateway\Request\UpdateHeldTransactionRequest::ACTION_DECLINE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get Transaction details command -->
+    <virtualType name="AuthorizeNetCoreGetTransactionDetailsCommand" type="AuthorizeNet\Core\Gateway\Command\GetTransactionDetailsCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCoreGetTransactionDetailsRequestBuilder</argument>
+            <argument name="client" xsi:type="object">\AuthorizeNet\Core\Gateway\Http\Client\GetTransactionDetailsClient</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreGetTransactionDetailsRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\GetTransactionDetailsRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_DUMMY</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreUpdateHeldValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetCoreTransactionResponseValidatorApproved</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreBaseConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNetCoreBaseConfig</argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="AuthorizeNetCoreBaseConfig" type="AuthorizeNet\Core\Gateway\Config\Config">
+        <arguments>
+            <argument name="pathPattern" xsi:type="string">authorize_net/%s/%s</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreTransactionIdSettleHandler" type="AuthorizeNet\Core\Gateway\Response\TransactionIdHandler">
+        <arguments>
+            <argument name="transactionIdSuffix" xsi:type="const">AuthorizeNet\Core\Gateway\Config\Config::TRANS_SUFFIX_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreTransactionIdVoidHandler" type="AuthorizeNet\Core\Gateway\Response\VoidHandler"> 
+        <arguments>
+            <argument name="transactionIdSuffix" xsi:type="const">AuthorizeNet\Core\Gateway\Config\Config::TRANS_SUFFIX_VOID</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get merchant details command -->
+    <virtualType name="AuthorizeNetCoreGetMerchantDetails" type="AuthorizeNet\Core\Gateway\Command\GetMerchantDetailsCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetCoreGetMerchantDetailsRequestBuilder</argument>
+            <argument name="client" xsi:type="object">AuthorizeNet\Core\Gateway\Http\Client\GetMerchantDetailsClient</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetCoreGetMerchantDetailsRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\GetMerchantDetailsRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_DUMMY</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="AuthorizeNet\Core\Model\Merchant\Configurator">
+        <arguments>
+            <argument name="command" xsi:type="object">AuthorizeNetCoreGetMerchantDetails</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\View\Asset\Minification">
+        <plugin name="anet-core-minification-plugin" type="AuthorizeNet\Core\Plugin\Minification"/>
+    </type>
+
+    <preference for="AuthorizeNet\Core\Service\AnetRequestSerializerInterface" type="AuthorizeNet\Core\Service\AnetRequestSerializerAdapter" />
+
+</config>

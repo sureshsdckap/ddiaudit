@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="AuthorizeNetVisaCheckoutPaymentGatewayFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">AuthorizeNet\VisaCheckout\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">AuthorizeNetVisaCheckoutPaymentInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AuthorizeNetVisaCheckoutPaymentGatewayValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetVisaCheckoutPaymentGatewayCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Configuration reader -->
+    <type name="AuthorizeNet\VisaCheckout\Gateway\Config\Config">
+        <arguments>
+            <argument name="pathPattern" xsi:type="const">Magento\Payment\Gateway\Config\Config::DEFAULT_PATH_PATTERN</argument>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\VisaCheckout\Model\Ui\ConfigProvider::CODE</argument>
+        </arguments>
+    </type>
+
+    <!-- Commands infrastructure -->
+    <virtualType name="AuthorizeNetVisaCheckoutPaymentGatewayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">AuthorizeNetVisaCheckoutAuthorizeCommand</item>
+                <item name="capture" xsi:type="string">AuthorizeNetVisaCheckoutCaptureStrategyCommand</item>
+                <item name="settle" xsi:type="string">AuthorizeNetVisaCheckoutSettleCommand</item>
+                <item name="sale" xsi:type="string">AuthorizeNetVisaCheckoutSaleCommand</item>
+                <item name="void" xsi:type="string">AuthorizeNetVisaCheckoutVoidCommand</item>
+                <item name="cancel" xsi:type="string">AuthorizeNetVisaCheckoutVoidCommand</item>
+                <item name="refund" xsi:type="string">AuthorizeNetVisaCheckoutRefundCommand</item>
+                <item name="decode" xsi:type="string">AuthorizeNetVisaCheckoutCheckoutDataDecodeCommand</item>
+                <item name="accept_payment" xsi:type="string">AuthorizeNetCoreApprovePaymentCommand</item>
+                <item name="deny_payment" xsi:type="string">AuthorizeNetCoreDeclinePaymentCommand</item>
+                <item name="fetch_transaction_information" xsi:type="string">AuthorizeNetCoreGetTransactionDetailsCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetVisaCheckoutCaptureStrategyCommand" type="AuthorizeNet\Core\Gateway\Command\CaptureStrategyCommand">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetVisaCheckoutPaymentGatewayCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Decrypt Payment Data Command -->
+    <virtualType name="AuthorizeNetVisaCheckoutCheckoutDataDecodeCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Request\DecryptPaymentDataRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Response\DecryptPaymentDataResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Http\Client\DecodePaymentDataClient</argument>
+        </arguments>
+    </virtualType>
+    
+    <type name="AuthorizeNet\VisaCheckout\Gateway\Http\Client\DecodePaymentDataClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Config\Config</argument>
+        </arguments>
+    </type>
+
+    <!-- Authorize command -->
+    <virtualType name="AuthorizeNetVisaCheckoutAuthorizeCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetVisaCheckoutAuthorizeRequest</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetVisaCheckoutTransactionResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetVisaCheckoutTransactionCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorization Request -->
+    <virtualType name="AuthorizeNetVisaCheckoutAuthorizeRequest" type="AuthorizeNet\VisaCheckout\Gateway\Request\TransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_ONLY</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Command validators-->
+    <virtualType name="AuthorizeNetVisaCheckoutTransactionCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetVisaCheckoutTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetVisaCheckoutTransactionResponseValidator" type="AuthorizeNetCoreTransactionResponseValidatorApprovedHeld"/>
+
+    <!-- Sale command -->
+    <virtualType name="AuthorizeNetVisaCheckoutSaleCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetVisaCheckoutSaleRequest</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetVisaCheckoutTransactionResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetVisaCheckoutTransactionCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    
+    <!-- Sale Request -->
+    <virtualType name="AuthorizeNetVisaCheckoutSaleRequest" type="AuthorizeNet\VisaCheckout\Gateway\Request\TransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+    
+    <!--Sale response handler-->
+    <virtualType name="AuthorizeNetVisaCheckoutTransactionResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="raw_data" xsi:type="string">\AuthorizeNet\Core\Gateway\Response\RawDataHandler</item>
+                <item name="held" xsi:type="string">AuthorizeNet\Core\Gateway\Response\HeldHandler</item>
+                <item name="transactionId" xsi:type="string">AuthorizeNet\Core\Gateway\Response\TransactionIdHandler</item>
+                <item name="ccInfo" xsi:type="string">AuthorizeNet\Core\Gateway\Response\CcInfoHandler</item>
+                <item name="clearData" xsi:type="string">AuthorizeNet\Core\Gateway\Response\ClearDataHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Settle command -->
+    <virtualType name="AuthorizeNetVisaCheckoutSettleCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetVisaCheckoutSettleRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetVisaCheckoutSettleResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetVisaCheckoutSettleCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetVisaCheckoutSettleRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\SettleRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_PRIOR_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetVisaCheckoutSettleResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="transactionId" xsi:type="string">AuthorizeNetCoreTransactionIdSettleHandler</item>
+                <item name="ccInfo" xsi:type="string">AuthorizeNet\Core\Gateway\Response\CcInfoHandler</item>
+                <item name="clearData" xsi:type="string">AuthorizeNet\Core\Gateway\Response\ClearDataHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetVisaCheckoutSettleCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetVisaCheckoutRefundTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetVisaCheckoutSettleTransactionResponseValidator" type="AuthorizeNetCoreTransactionResponseValidatorApproved"/>
+
+    <!-- Void command -->
+    <virtualType name="AuthorizeNetVisaCheckoutVoidCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetVisaCheckoutVoidRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetCoreTransactionIdVoidHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetVisaCheckoutVoidCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Void Request -->
+    <virtualType name="AuthorizeNetVisaCheckoutVoidRequestBuilder" type="AuthorizeNetVisaCheckoutSettleRequestBuilder"/>
+
+    <virtualType name="AuthorizeNetVisaCheckoutVoidCommandValidator" type="AuthorizeNetVisaCheckoutSettleCommandValidator"/>
+
+    <!-- Refund command -->
+    <virtualType name="AuthorizeNetVisaCheckoutRefundCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetVisaCheckoutGatewayRequestRefundRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNet\Core\Gateway\Response\RefundHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetVisaCheckoutRefundCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Refund Request -->
+    <virtualType name="AuthorizeNetVisaCheckoutGatewayRequestRefundRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\CcRefundRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_REFUND</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetVisaCheckoutRefundCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetVisaCheckoutRefundTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    
+    <virtualType name="AuthorizeNetVisaCheckoutRefundTransactionResponseValidator" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetVisaCheckoutGatewayHttpClientTransactionClient" type="AuthorizeNet\Core\Gateway\Http\Client\TransactionClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment info block -->
+    <virtualType name="AuthorizeNetVisaCheckoutPaymentInfo" type="AuthorizeNet\Core\Block\Payment\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+    
+    <!-- Value handlers infrastructure -->
+    <virtualType name="AuthorizeNetVisaCheckoutPaymentGatewayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AuthorizeNetVisaCheckoutPaymentGatewayConfigValueHandler</item>
+                <item name="login_id" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="trans_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="client_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="signature_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="can_void" xsi:type="string">AuthorizeNet\Core\Gateway\Config\CanVoidHandler</item>
+                <item name="can_cancel" xsi:type="string">AuthorizeNet\Core\Gateway\Config\CanVoidHandler</item>
+                <item name="solution_id" xsi:type="string">AuthorizeNet\Core\Gateway\Config\SolutionIdHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetVisaCheckoutPaymentGatewayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="visaCheckoutDecodeBillingAddress" type="AuthorizeNet\VisaCheckout\Model\Checkout\Plugin\PaymentInformationManagementPlugin"/>
+    </type>
+
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="guestVisaCheckoutDecodeBillingAddress" type="AuthorizeNet\VisaCheckout\Model\Checkout\Plugin\GuestPaymentInformationManagementPlugin"/>
+    </type>
+
+    <type name="AuthorizeNet\VisaCheckout\Model\DecodeBillingAddress">
+        <arguments>
+            <argument name="checkoutDataDecodeCommand" xsi:type="object">AuthorizeNetVisaCheckoutCheckoutDataDecodeCommand</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="AuthorizeNetVisaCheckoutObserverAddVisaCheckoutShortcuts" type="AuthorizeNet\Core\Observer\AddShortcuts">
+        <arguments>
+            <argument name="gatewayConfig" xsi:type="object">AuthorizeNet\VisaCheckout\Gateway\Config\Config</argument>
+            <argument name="blockClass" xsi:type="string">AuthorizeNet\VisaCheckout\Block\Button</argument>
+        </arguments>
+    </virtualType>
+    
+    <type name="AuthorizeNet\VisaCheckout\Model\Checkout">
+        <arguments>
+            <argument name="decodeCommand" xsi:type="object">AuthorizeNetVisaCheckoutCheckoutDataDecodeCommand</argument>
+        </arguments>
+    </type>
+
+    <type name="AuthorizeNet\Core\Model\Merchant\Configurator">
+        <plugin name="anet-vc-configurator-plugin" type="AuthorizeNet\VisaCheckout\Plugin\ConfiguratorPlugin"/>
+    </type>
+
+    <type name="AuthorizeNet\Core\Plugin\Minification">
+        <arguments>
+            <argument name="additionalExcludes" xsi:type="array">
+                <item name="anet-vc" xsi:type="string">checkout.visa.com</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

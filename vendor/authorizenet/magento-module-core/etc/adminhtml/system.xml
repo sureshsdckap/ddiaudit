@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="anet_section" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Authorize.Net</label>
+                <field id="merchant_configuration" translate="label" type="AuthorizeNet\Core\Block\Form\Element\Link\Configuration" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <comment>Click this button in order to launch setup wizard that helps you to configure Authorize.Net payment methods for your store in a few easy steps!</comment>
+                </field>
+                <group id="anet_core" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>General</label>
+                    <field id="debug" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Debug</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_core/debug</config_path>
+                        <tooltip>Select Yes from the drop-down menu to enable Authorize.Net API request logging. Log file is stored in %MAGENTO_ROOT%/var/log/anet.log.</tooltip>
+                    </field>
+                    <field id="test_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Sandbox Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_core/test_mode</config_path>
+                    </field>
+                    <field id="login_id" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Login ID</label>
+                        <config_path>authorize_net/anet_core/login_id</config_path>
+                        <tooltip>Log in to the Authorize.Net merchant interface and navigate to Home > Account > Settings > Security Settings > General Settings > API Login ID and Transaction Key</tooltip>
+                        <comment><![CDATA[<a href="https://account.authorize.net">Authorize.Net merchant interface</a>]]></comment>
+                    </field>
+                    <field id="trans_key" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Transaction Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>authorize_net/anet_core/trans_key</config_path>
+                        <tooltip>Log in to the Authorize.Net merchant interface and navigate to Home > Account > Settings > Security Settings > General Settings > API Login ID and Transaction Key</tooltip>
+                    </field>
+                    <field id="client_key" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Client Key</label>
+                        <config_path>authorize_net/anet_core/client_key</config_path>
+                        <comment>Client key for accept.js payments</comment>
+                        <tooltip>Log in to the Authorize.Net merchant interface and navigate to Home > Account > Settings > Security Settings > General Settings > Manage Public Client Key</tooltip>
+                    </field>
+                    <field id="signature_key" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Signature Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>authorize_net/anet_core/signature_key</config_path>
+                        <tooltip>Signature key is a piece of information that is used to verify webhook messages integrity. Log in to the Authorize.Net merchant interface and navigate to Home > Account > Settings > Security Settings > General Settings > API Login ID and Transaction Key</tooltip>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

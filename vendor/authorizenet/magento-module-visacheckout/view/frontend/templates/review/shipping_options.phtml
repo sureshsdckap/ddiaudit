@@ -1,0 +1,57 @@
+<?php
+
+/* @var AuthorizeNet\VisaCheckout\Block\Checkout\Review $block */
+
+?>
+
+<form method="post" id="shipping-method-form"
+      action="<?= $block->escapeUrl($block->getShippingMethodSubmitUrl()) ?>"
+      class="form">
+    <?php if ($groups = $block->getShippingRateGroups()) : ?>
+        <?php $currentRate = $block->getCurrentShippingRate(); ?>
+        <div class="field shipping required">
+            <select name="shipping_method" id="shipping-method" class="select">
+                <?php if (!$currentRate) : ?>
+                    <option value=""><?= $block->escapeHtml(__(
+                        'Please select a shipping method...'
+                    )); ?></option>
+                <?php endif; ?>
+                <?php foreach ($groups as $code => $rates) : ?>
+                    <optgroup label="<?= $block->escapeHtml($block->getCarrierName(
+                        $code
+                    )); ?>">
+                        <?php foreach ($rates as $rate) : ?>
+                            <option value="<?= $block->escapeHtml(
+                                $block->renderShippingRateValue($rate)
+                            ); ?>"
+                                <?= ($currentRate === $rate) ?
+                                    ' selected="selected"' : '';
+                                ?>>
+                                <?php /* @noEscape */
+                                echo
+                                $block->renderShippingRateOption($rate);
+                                ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button id="update-shipping-method-submit" type="submit"
+                        class="action update primary">
+                                                <span>
+                                                    <?= $block->escapeHtml(__('Update Shipping Method')) ?>
+                                                </span>
+                </button>
+            </div>
+        </div>
+    <?php else : ?>
+        <p>
+            <?= $block->escapeHtml(__(
+                'Sorry, no quotes are available for this order right now.'
+            )); ?>
+        </p>
+    <?php endif; ?>
+</form>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <route id="anet_paypal_express" frontName="anet_paypal_express">
+            <module name="AuthorizeNet_PayPalExpress" />
+        </route>
+    </router>
+</config>

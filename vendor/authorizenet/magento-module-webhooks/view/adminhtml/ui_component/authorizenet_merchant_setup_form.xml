@@ -1,0 +1,33 @@
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="stepsOrder" xsi:type="array">
+                <item name="50" xsi:type="string">anet_signature_key</item>
+            </item>
+        </item>
+    </argument>
+    <fieldset name="anet_signature_key" sortOrder="50" component="AuthorizeNet_Core/js/config-page">
+        <settings>
+            <label translate="true">Webhooks Signature Key</label>
+            <collapsible>false</collapsible>
+            <visible>false</visible>
+        </settings>
+        <container name="anet_signature_key_text" sortOrder="10" component="AuthorizeNet_Core/js/text">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="template" xsi:type="string">ui/form/components/complex</item>
+                    <item name="label" xsi:type="string"/>
+                    <item name="content" xsi:type="string" translate="true">Signature key is a piece of information that is used to verify webhook messages integrity.
+                        Please enter it to the box below or leave unmodified if already configured.</item>
+                </item>
+            </argument>
+        </container>
+        <field name="signature_key" formElement="input" >
+            <settings>
+                <dataType>text</dataType>
+                <elementTmpl>AuthorizeNet_Core/form/element/password</elementTmpl>
+                <label translate="true">Signature Key</label>
+            </settings>
+        </field>
+    </fieldset>
+</form>

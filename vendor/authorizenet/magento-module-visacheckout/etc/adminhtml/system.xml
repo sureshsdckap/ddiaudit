@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="anet_section">
+                <group id="anet_visacheckout" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Visa Checkout</label>
+                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="1">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_visacheckout/active</config_path>
+                    </field>
+
+                    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Title</label>
+                        <config_path>payment/anet_visacheckout/title</config_path>
+                    </field>
+
+                    <field id="api_key" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Visa Checkout API Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/anet_visacheckout/api_key</config_path>
+                        <tooltip>Log in to the Merchant Interface and navigate to Account > Digital Payment Solutions. In the Visa Checkout section, click Sign Up.</tooltip>
+                    </field>
+
+                    <field id="payment_action" type="select" showInDefault="1" showInWebsite="1" sortOrder="60" translate="label">
+                        <label>Payment Action</label>
+                        <source_model>AuthorizeNet\Core\Model\Source\PaymentAction</source_model>
+                        <config_path>payment/anet_visacheckout/payment_action</config_path>
+                        <tooltip>See Payment Transaction Types page for a detailed explanation about transaction types.</tooltip>
+                        <comment><![CDATA[<a href="https://developer.authorize.net/api/reference/features/payment_transactions.html#Transaction_Types">Payment Transaction Types</a>]]></comment>
+                    </field>
+
+                    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment From Applicable Countries</label>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                        <config_path>payment/anet_creditcard/allowspecific</config_path>
+                    </field>
+
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Payment From Specific Countries</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <config_path>payment/anet_creditcard/specificcountry</config_path>
+                        <depends>
+                            <field id="allowspecific">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="enable_product_page_button" type="select" showInDefault="1" showInWebsite="1" sortOrder="90" translate="label">
+                        <label>Enable Visa Checkout button on product page</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_visacheckout/enable_product_page_button</config_path>
+                    </field>
+                    
+                    <field id="enable_cart_page_button" type="select" showInDefault="1" showInWebsite="1" sortOrder="100" translate="label">
+                        <label>Enable Visa Checkout button in cart</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_visacheckout/enable_cart_page_button</config_path>
+                    </field>
+
+                    <field id="disable_telephone_requirement" type="select" showInDefault="1" showInWebsite="1" sortOrder="110" translate="label">
+                        <label>Remove requirement for phone numbers on visa checkout orders</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/anet_visacheckout/disable_telephone_requirement</config_path>
+                    </field>
+
+                    <field id="sort_order" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Sort Order</label>
+                        <config_path>payment/anet_creditcard/sort_order</config_path>
+                        <frontend_class>validate-number</frontend_class>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <anet_echeck>
+                <active>0</active>
+                <model>AuthorizeNetECheckFacade</model>
+                <payment_action>authorize_capture</payment_action>
+                <can_use_checkout>1</can_use_checkout>
+                <can_use_internal>1</can_use_internal>
+                <can_capture>1</can_capture>
+                <can_refund>1</can_refund>
+                <can_capture_vault>1</can_capture_vault>
+                <can_review_payment>1</can_review_payment>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <is_gateway>1</is_gateway>
+                <is_offline>0</is_offline>
+                <title>eCheck (Authorize.Net)</title>
+                <agreement_template><![CDATA[
+                    By clicking the button below,
+                    I authorize This Store to charge my {{accountType}}
+                    account on {{date}} for the amount of {{total}}.]]>
+                </agreement_template>
+                <allowspecific>0</allowspecific>
+                <test_mode>0</test_mode>
+                <sort_order>1</sort_order>
+                <paymentAdditionalInformationKeys>opaque_data,routingNumber,accountNumber,accountName,accountType</paymentAdditionalInformationKeys>
+                <paymentInfoKeys>transactionId,accountNumber,routingNumber,accountName,accountType,FDSFilterAction,FDSFilters</paymentInfoKeys>
+                <privateInfoKeys>transactionId,routingNumber,accountType,FDSFilterAction,FDSFilters</privateInfoKeys>
+            </anet_echeck>
+            <anet_echeck_vault>
+                <model>AuthorizeNetECheckVaultFacade</model>
+                <title>Stored eChecks (Authorize.Net)</title>
+                <active>1</active>
+            </anet_echeck_vault>
+        </payment>
+    </default>
+</config>

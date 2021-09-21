@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="AuthorizeNet\CreditCard\Block\Payment">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\CreditCard\Model\Ui\ConfigProvider</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Vault\Model\Ui\Adminhtml\TokensConfigProvider">
+        <arguments>
+            <argument name="tokenUiComponentProviders" xsi:type="array">
+                <item name="anet_creditcard" xsi:type="object">AuthorizeNet\CreditCard\Model\Ui\Adminhtml\TokenUiComponentProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="AuthorizeNet\CreditCard\Plugin\VaultTransactionRequestBuilderPlugin">
+        <arguments>
+            <argument name="isAdminArea" xsi:type="string">1</argument>
+        </arguments>
+    </type>
+
+</config>

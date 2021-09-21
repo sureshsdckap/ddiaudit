@@ -1,0 +1,235 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="AuthorizeNet\ECheck\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::CODE</argument>
+        </arguments>
+    </type>
+
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="AuthorizeNetECheckFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">AuthorizeNet\ECheck\Block\Payment\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">AuthorizeNetECheckPaymentInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AuthorizeNetECheckValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetECheckCommandPool</argument>
+            <argument name="logger" xsi:type="object">AuthorizeNet\Core\Model\Logger</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Commands infrastructure -->
+    <virtualType name="AuthorizeNetECheckCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="capture" xsi:type="string">AuthorizeNetECheckCaptureCommand</item>
+                <item name="refund" xsi:type="string">AuthorizeNetECheckRefundCommand</item>
+                <item name="vault_sale" xsi:type="string">AuthorizeNetECheckVaultCaptureCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Capture command -->
+    <virtualType name="AuthorizeNetECheckCaptureCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetECheckCaptureRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetECheckCaptureResponseHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetECheckCaptureCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetECheckTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCaptureRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\OpaqueDataTransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCaptureResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="transactionId" xsi:type="string">AuthorizeNet\Core\Gateway\Response\TransactionIdHandler</item>
+                <item name="setPaymentReview" xsi:type="string">AuthorizeNet\ECheck\Gateway\Response\SetPaymentReviewHandler</item>
+                <item name="clearData" xsi:type="string">AuthorizeNet\Core\Gateway\Response\ClearDataHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCaptureCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetECheckCaptureTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCaptureTransactionResponseValidator" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Refund command -->
+    <virtualType name="AuthorizeNetECheckRefundCommand" type="AuthorizeNetCoreGatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetECheckRefundRequestBuilder</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNet\Core\Gateway\Response\RefundHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNetECheckRefundCommandValidator</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetECheckTransactionClient</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckRefundRequestBuilder" type="AuthorizeNet\ECheck\Gateway\Request\RefundRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_REFUND</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckRefundCommandValidator" type="Magento\Payment\Gateway\Validator\ValidatorComposite">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="responseCode" xsi:type="string">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</item>
+                <item name="transactionResponseCode" xsi:type="string">AuthorizeNetECheckRefundCaptureTransactionResponseValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckRefundCaptureTransactionResponseValidator" type="AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator">
+        <arguments>
+            <argument name="validResponseCodes" xsi:type="array">
+                <item name="approved" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_APPROVED</item>
+                <item name="held" xsi:type="const">AuthorizeNet\Core\Gateway\Validator\TransactionResponseCodeValidator::TRANSACTION_CODE_HELD</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault capture command -->
+    <virtualType name="AuthorizeNetECheckVaultCaptureCommand" type="AuthorizeNetECheckCaptureCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetECheckVaultCaptureRequestBuilder</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckVaultCaptureRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\VaultTransactionRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_AUTH_CAPTURE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Create customer profile command -->
+    <virtualType name="AuthorizeNetECheckCreateProfileCommand" type="AuthorizeNet\Core\Gateway\Command\CreateProfileCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AuthorizeNetECheckCreateProfileRequestBuilder</argument>
+            <argument name="client" xsi:type="object">AuthorizeNetECheckCreateProfileRequestClient</argument>
+            <argument name="handler" xsi:type="object">AuthorizeNetECheckResponseProfileDetailsHandler</argument>
+            <argument name="transferFactory" xsi:type="object">AuthorizeNet\Core\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">AuthorizeNet\Core\Gateway\Validator\ResultCodeValidator</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCreateProfileRequestBuilder" type="AuthorizeNet\Core\Gateway\Request\CreateProfileRequestBuilder">
+        <arguments>
+            <argument name="transactionType" xsi:type="const">AuthorizeNet\Core\Gateway\Http\Client\AbstractClient::TRANSACTION_DUMMY</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckResponseProfileDetailsHandler" type="AuthorizeNet\Core\Gateway\Response\ProfileDetailsHandler">
+        <arguments>
+            <argument name="paymentTokenFactory" xsi:type="object">Magento\Vault\Model\AccountPaymentTokenFactory</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Order Complete Observer -->
+    <virtualType name="AuthorizeNetECheckCreateProfileObserver" type="AuthorizeNet\Core\Observer\OrderPaymentPlaceCompleteObserver">
+        <arguments>
+            <argument name="paymentMethodCode" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::CODE</argument>
+            <argument name="command" xsi:type="object">AuthorizeNetECheckCreateProfileCommand</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault payment -->
+    <virtualType name="AuthorizeNetECheckVaultFacade" type="AuthorizeNet\Core\Model\Method\Vault">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNetECheckVaultPaymentConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AuthorizeNetECheckVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AuthorizeNetECheckFacade</argument>
+            <argument name="code" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::VAULT_CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AuthorizeNetECheckVaultPaymentConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">AuthorizeNet\ECheck\Gateway\Config\Config::VAULT_CODE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckVaultPaymentValueHandler" type="VaultPaymentDefaultValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNetECheckVaultPaymentConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AuthorizeNetECheckVaultPaymentValueHandler</item>
+                <item name="solution_id" xsi:type="string">AuthorizeNet\Core\Gateway\Config\SolutionIdHandler</item>
+                <item name="login_id" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="trans_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="client_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="signature_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Vault command manager -->
+    <virtualType name="AuthorizeNetECheckCommandManager" type="Magento\Payment\Gateway\Command\CommandManager">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AuthorizeNetECheckCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Payment\Gateway\Command\CommandManagerPool">
+        <arguments>
+            <argument name="executors" xsi:type="array">
+                <item name="anet_echeck" xsi:type="string">AuthorizeNetECheckCommandManager</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Injecting config model -->
+    <virtualType name="AuthorizeNetECheckTransactionClient" type="AuthorizeNet\Core\Gateway\Http\Client\TransactionClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\ECheck\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckCreateProfileRequestClient" type="AuthorizeNet\Core\Gateway\Http\Client\CreateProfileClient">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\ECheck\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment info block -->
+    <virtualType name="AuthorizeNetECheckPaymentInfo" type="AuthorizeNet\Core\Block\Payment\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">AuthorizeNet\ECheck\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Value handlers infrastructure -->
+    <virtualType name="AuthorizeNetECheckValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AuthorizeNetECheckConfigValueHandler</item>
+                <item name="login_id" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="trans_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="client_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="signature_key" xsi:type="string">AuthorizeNetCoreBaseConfigValueHandler</item>
+                <item name="solution_id" xsi:type="string">AuthorizeNet\Core\Gateway\Config\SolutionIdHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetECheckConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AuthorizeNet\ECheck\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="AuthorizeNet\Core\Model\Merchant\Configurator">
+        <plugin name="anet-echeck-configurator-plugin" type="AuthorizeNet\ECheck\Plugin\ConfiguratorPlugin"/>
+    </type>
+</config>

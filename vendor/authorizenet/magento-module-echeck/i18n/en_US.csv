@@ -1,0 +1,5 @@
+transactionId,"Transaction ID"
+routingNumber,"Routing Number (Last 4 Digits)"
+accountNumber,"Account Number (Last 4 Digits)"
+accountType,"Account Type"
+accountName,"Name on Account"

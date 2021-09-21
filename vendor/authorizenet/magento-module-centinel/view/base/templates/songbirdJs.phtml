@@ -1,0 +1,10 @@
+<?php /** @var \AuthorizeNet\Centinel\Block\SongbirdJs $block */ ?>
+<script type="text/javascript">
+    require.config({
+        map: {
+            '*': {
+                songbird: '<?= $block->getSongbirdJsUrl() ?>'
+            }
+        }
+    });
+</script>

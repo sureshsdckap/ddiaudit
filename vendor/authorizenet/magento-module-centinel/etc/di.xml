@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="AuthorizeNet\Core\Plugin\Minification">
+        <arguments>
+            <argument name="additionalExcludes" xsi:type="array">
+                <item name="anet-centinel" xsi:type="string">ccdc02.com</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Logger configuration -->
+    <virtualType name="AuthorizeNetCentinelModelLogger" type="AuthorizeNet\Core\Model\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">Centinel Logger</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">AuthorizeNetCentinelModelLoggerHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AuthorizeNetCentinelModelLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/centinel.log</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Injecting logger -->
+    <type name="AuthorizeNet\Centinel\Controller\Cca\HandleResponse">
+        <arguments>
+            <argument name="logger" xsi:type="object">AuthorizeNetCentinelModelLogger</argument>
+        </arguments>
+    </type>
+</config>

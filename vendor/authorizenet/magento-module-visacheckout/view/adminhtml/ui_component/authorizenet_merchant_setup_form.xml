@@ -1,0 +1,55 @@
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="stepsOrder" xsi:type="array">
+                <item name="40" xsi:type="string">visa_checkout</item>
+            </item>
+        </item>
+    </argument>
+    <fieldset name="visa_checkout" sortOrder="40" component="AuthorizeNet_Core/js/config-page">
+        <settings>
+            <label translate="true">Visa Checkout</label>
+            <collapsible>false</collapsible>
+            <visible>false</visible>
+        </settings>
+        <container name="visa_checkout_text" sortOrder="10" component="AuthorizeNet_Core/js/text">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="template" xsi:type="string">ui/form/components/complex</item>
+                    <item name="label" xsi:type="string"/>
+                    <item name="content" xsi:type="string"/>
+                    <item name="imports" xsi:type="array">
+                        <item name="content" xsi:type="string">${ $.provider }:data.visa_checkout_text</item>
+                    </item>
+                </item>
+            </argument>
+        </container>
+        <field name="visa_checkout_enabled" formElement="checkbox">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Enable Visa Checkout</label>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="boolean">false</map>
+                            <map name="true" xsi:type="boolean">true</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="visa_checkout_api_key" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <elementTmpl>AuthorizeNet_Core/form/element/password</elementTmpl>
+                <label translate="true">Visa Checkout API Key</label>
+                <imports>
+                    <link name="setVisible" active="true">${ $.provider }:data.visa_checkout_enabled</link>
+                </imports>
+            </settings>
+        </field>
+    </fieldset>
+</form>

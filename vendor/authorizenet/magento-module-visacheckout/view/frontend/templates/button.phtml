@@ -1,0 +1,17 @@
+<?php
+
+/* @var \AuthorizeNet\VisaCheckout\Block\Button $block */
+
+$config = [
+    'AuthorizeNet_VisaCheckout/js/view/payment/button' => [
+        'apiKey' => $block->getApiKey(),
+        'blockContainerSelector' => '#'. $block->getShortcutHtmlId(),
+        'isCatalogProduct' => $block->getIsCatalogProduct(),
+    ]
+];
+
+?>
+
+<div class="visa-checkout button" id="<?php echo $block->getShortcutHtmlId() ?>" data-mage-init='<?= /* @noEscape */ json_encode($config) ?>'>
+    <img src="<?php echo $block->getButtonImageUrl() ?>" class="v-button" role="button"/>
+</div>

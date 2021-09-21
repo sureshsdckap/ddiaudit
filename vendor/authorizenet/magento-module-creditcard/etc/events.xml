@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <event name="payment_method_assign_data_anet_creditcard">
+        <observer name="anet_creditcard_payment_data_assign"
+                  instance="AuthorizeNet\Core\Observer\PaymentAdditionalDataAssignObserver" />
+    </event>
+
+    <event name="payment_method_assign_data_vault_anet_creditcard">
+        <observer name="anet_creditcard_vault_payment_data_assign"
+                  instance="AuthorizeNet\Core\Observer\PaymentAdditionalDataAssignObserver" />
+    </event>
+
+    <event name="sales_order_payment_place_end">
+        <observer name="anet_creditcard_sales_order_payment_place_end"
+                  instance="AuthorizeNetCreditCardCreateProfileObserver" />
+    </event>
+
+</config>

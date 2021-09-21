@@ -1,0 +1,141 @@
+<?php
+
+/* @var AuthorizeNet\VisaCheckout\Block\Checkout\Review $block */
+
+?>
+
+<div class="visacheckout-review view">
+    <div class="block block-order-details-view">
+
+        <div class="block-content">
+            
+            <?php if ($block->getShippingAddress()) : ?>
+            <div class="box box-order-shipping-method">
+                <strong class="box-title">
+                    <span><?= $block->escapeHtml(__('Shipping Method')) ?></span>
+                </strong>
+                <div class="box-content">
+                    <?php echo $block->getShippingMethodHtml(); ?>
+                </div>
+            </div>
+            <div class="box box-order-shipping-address">
+                <strong class="box-title">
+                    <span><?= $block->escapeHtml(__('Shipping Address')) ?></span>
+                    <a href="javascript:void(0)" class="info-edit"><?php echo __('Edit') ?></a>
+                </strong>
+                <div class="box-content">
+                    <?php echo $block->escapeHtml($block->renderAddress($block->getShippingAddress()), ['br']); ?>
+                    <?php if ($block->isShippingAddressFormVisible()) : ?>
+                        <form id="shipping-address-form" class="fieldset address">
+                            <div class="field required">
+                                <label class="label" for="shipping-phone-input">
+                                    <span><?php echo __('Telephone') ?></span>
+                                </label>
+                            </div>
+                            <div class="control">
+                                <input class="required" id="shipping-phone-input" name="telephone" type="tel"/>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <?php endif; ?>
+            
+            <div class="box box-order-billing-address">
+                <strong class="box-title">
+                    <span><?= $block->escapeHtml(__('Billing Address')) ?></span>
+                    <a href="javascript:void(0)" class="info-edit"><?php echo __('Edit') ?></a>
+                </strong>
+                <div class="box-content">
+                    <?php echo $block->escapeHtml($block->renderAddress($block->getBillingAddress()), ['br']); ?>
+                    <?php if ($block->isBillingAddressFormVisible()) : ?>
+                        <form id="billing-address-form" class="fieldset address">
+                            <div class="field required">
+                                <label class="label" for="billing-phone-input">
+                                    <span><?php echo __('Telephone') ?></span>
+                                </label>
+                            </div>
+                            <div class="control">
+                                <input class="required" id="billing-phone-input" name="telephone" type="tel"/>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="box box-order-payment-method">
+                <strong class="box-title">
+                    <span><?= $block->escapeHtml(__('Payment Method')) ?></span>
+                    <a href="javascript:void(0)" class="info-edit"><?php echo __('Edit') ?></a>
+                </strong>
+                <div class="box-content">
+                    <?php echo $block->escapeHtml($block->getPaymentMethodTitle()); ?><br/>
+                    <?php echo $block->escapeHtml($block->getEmail()); ?><br/>
+                    <?php echo __('Card Number'); ?>: xxxx-<?php echo $block->escapeHtml($block->getQuote()->getPayment()->getCcLast4()); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="vc-edit-button" data-mage-init='{"vcReviewButton": <?php echo json_encode($block->getVcButtonConfig()) ?>}'>
+        <?php echo __('Change billing or shipping information above with') ?><br/>
+        <img src="<?php echo $block->getVcButtonImageUrl() ?>" alt="Visa Checkout" class="v-button">
+    </div>
+    
+    <div class="visacheckout-review-discount">
+        <?= $block->getChildHtml('visacheckout.additional.actions') ?>
+    </div>
+    <div class="visacheckout-review-items">
+        <div class="vc-review-title">
+            <strong><?= $block->escapeHtml(__('Items in Your Shopping Cart')) ?></strong>
+            <a href="<?= $block->escapeUrl($block->getUrl('checkout/cart')) ?>" class="action edit">
+                <span><?= $block->escapeHtml(__('Edit Shopping Cart')) ?></span>
+            </a>
+        </div>
+
+        <?= $block->getChildHtml('details') ?>
+
+        <form method="post" id="order-review-form" action="<?= $block->escapeUrl($block->getPlaceOrderUrl()) ?>"
+              class="form order-review-form">
+            <?= $block->getBlockHtml('formkey') ?>
+            <?= $block->getChildHtml('agreements') ?>
+            
+            <div class="actions-toolbar" id="review-buttons-container">
+                <div class="primary">
+                    <button type="button" id="review-submit" class="action checkout primary"
+                            value="<?= $block->escapeHtml(__('Place Order')) ?>">
+                        <span><?= $block->escapeHtml(__('Place Order')) ?></span>
+                    </button>
+                </div>
+                <span class="please-wait load indicator" id="review-please-wait" style="display: none;"
+                      data-text="<?= $block->escapeHtml(__('Submitting order information...')) ?>">
+                   <span><?= $block->escapeHtml(__('Submitting order information...')) ?></span>
+                </span>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<script type="text/x-magento-init">
+    {
+        "#order-review-form": {
+            "validation": {},
+            "vcOrderReview": {
+                "shippingSubmitFormSelector": "#shipping-method-form",
+                "shippingSelector": "#shipping-method",
+                "shippingMethodUpdateUrl": "<?= $block->escapeUrl($block->getUpdateShippingMethodsUrl()) ?>",
+                "isAjax": <?= /* @noEscape */ $block->getUseAjax() ? 'true' : 'false' ?>,
+                "canEditShippingMethod": true,
+                "shippingAddressFromSelector": "#shipping-address-form",
+                "billingAddressFromSelector": "#billing-address-form"
+            }
+        },
+        "#shipping-address-form": {
+            "validation": {}
+        },
+        "#billing-address-form": {
+            "validation": {}
+        }
+    }
+</script>

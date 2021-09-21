@@ -1,0 +1,29 @@
+<?php
+
+use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$details = $block->getData(TokenUiComponentProviderInterface::COMPONENT_DETAILS);
+$hash = $block->getData(TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH);
+$code = $block->getData('code');
+$id = $block->getData('id');
+
+?>
+<div data-mage-init='{
+        "AuthorizeNet_Core/js/vault": {
+            "container": "payment_<?= /* @noEscape */ $id ?>",
+            "publicHash": "<?= $hash ?>",
+            "code": "<?= $code ?>"
+        }
+    }' id="payment_<?= /* @noEscape */ $id ?>" class="admin__field">
+
+    <div class="admin__field-control control">
+        <input class="required-entry" type="radio" id="token_switcher_<?= /* @noEscape */ $id ?>" name="payment[token_switcher]" />
+        <label for="token_switcher_<?= /* @noEscape */ $id ?>">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAeCAQAAAD5yuQRAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA0RJREFUSMftlUtoXXUQxn/f/5x7b3KTplWUWvpK20gURSkhFrUqQpPSkkoINVRpQeqqBPGFVbtQ3JiF4qYx4CpK0SIaN2pLQ7DYYqNW0hhdpIhRi6Y2Me80r3PPjIsbcSFdieAis5vNj/m+4ZuR899VYBm+DP9fwNXEVQQIOAlAjmbmcQrEpBgQobV+wK7QIQAcEIGECEcEpikhQwpZWqIF3mY2oRo1bV1sVEoOWBg8mo5DKbdQwCkQPWb3ecZ7ow/sRl3gR6qcQIYE+we8lBwJVDDJFFWMJNxKbHXZl/6SUfO+xoGilut1zHaD0AHfxlMscBkc59qZdkj4VXMsFvtY0w7t6VHyrpmfIpxC0a+32E2/nmXcn+YjlZElura7BgiHoEBA4GSIcVA/AyJPzDwi4Ni9vjc7lt3F0Cxhv8MdDsPcpGZ9p9MA2uCPyOlgBJxsg25LZ+hkTE7wVKuje8bOxABaEyLKV86xOEMGZ57ShhIGjw0OlVODIdyYooZvtBYr7LIubueEr4/wR6ln2NpKWqCAKnnOXcNKOBvW/F4dAOxlCpr44/EJIkTKImFzxNzFYUb/9iJinb1nrxCsLia8yfqkonA3d4Z6VanFB3WX7dEJRI5R9nMzz8dDMQCXwkUvjX5O5XW2IUzmOm3mKpVlGxEGGELl1meH432OpoFaH1UjlcADvsWJXwznE4A8U9RSx8eh3SjCX4vaEsqZXmUf2opASbX3cDDaPvt6trgmkLvGIrTK8fkkCgn5+AjGKXrVCDbgCEMwyxbQKaAIt4V5cswyNxk/GVb7nI9G3SnhIdtB91LAHMgKd1CI3Sro9RoR4djDwEbrXxpjJQMEP6R3fSJGoB385mVJlm46lq7CqL9hz+Q71Zr20cgF/wyIgOCQj83P+P3aF3q0LT1POw/ygn7xTQzzFSvoo40uDi22xpSCmuPmFIj30uk4QkSH0wxP0Jog+FQnXdwA5IWXGxzkLMedAn4kbk0/8Qa+FXqHHvJs5RyXeNWOa8+mkhq3orUlX+gKzOBkgRS2U+u59Aed00TYGcbtc9sUaux7DTjaTGN6HV+HL8OIBW+ilv5wOlymHnkX69KdZV1aftDL8GX4v6s/AccZaG0zPgYoAAAAAElFTkSuQmCC" style="margin: 0 5px 0 0; vertical-align: middle;" alt="eCheck.Net" />
+            <span><?= 'XXXX-' . $details['accountNumber'] ?></span>
+            (<span><?= $details['accountName'] ?></span>)
+        </label>
+    </div>
+</div>
