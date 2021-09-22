@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-
-    <event name="payment_method_assign_data_anet_paypal_express">
-        <observer name="anet_paypal_express_payment_data_assign"
-                  instance="AuthorizeNet\Core\Observer\PaymentAdditionalDataAssignObserver" />
-    </event>
-
-</config>

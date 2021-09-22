@@ -1,5 +1,0 @@
-transactionId,"Transaction ID"
-cardType,"Credit Card Type"
-cardNumber,"Credit Card Number"
-avsResultCode,"AVS Response Code"
-authCode,"Auth Response Code"
