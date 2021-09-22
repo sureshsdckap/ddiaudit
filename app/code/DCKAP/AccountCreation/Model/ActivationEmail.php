@@ -87,3 +87,4 @@ class ActivationEmail
         $this->transportBuilder->getTransport()->sendMessage();
     }
 }
+
