@@ -132,4 +132,5 @@ class UserActivation implements ObserverInterface
             }
         }
     }
+
 }
